@@ -1,38 +1,3 @@
-// import { Request, Response } from "express";
-// import jwt from "jsonwebtoken";
-// import AuthModel from "../model/auth.model";
-
-// export const signup = async (req: Request, res: Response) => {
-//   try {
-//     const body = req.body;
-
-//     const auth = await AuthModel.create(body);
-
-//     const payload = {
-//       fullname: auth.fullname,
-//       mobile: auth.mobile,
-//       email: auth.email,
-//       password: auth.password,
-//     };
-
-//     const token = jwt.sign(
-//       payload,
-//       process.env.JWT_SECRET as string,
-//       {
-//         expiresIn: "7d",
-//       }
-//     );
-
-//     res.status(200).json({
-//       message: token,
-//     });
-//   } catch (err: any) {
-//     res.status(500).json({
-//       message: err.message,
-//     });
-//   }
-// };
-
 import { Request, Response } from "express";
 import AuthModel from "../model/auth.model";
 import bcrypt from "bcryptjs";
@@ -83,9 +48,7 @@ export const login = async (req: Request, res: Response) => {
     const isLogin = await bcrypt.compare(password, user.password);
 
     if (!isLogin) {
-      const err: ErrorMessage = new Error(
-        " email or password incorrect",
-      );
+      const err: ErrorMessage = new Error(" email or password incorrect");
       err.status = 401;
       throw err;
     }
@@ -114,3 +77,13 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+export const getSession = (req: Request, res: Response) => {
+  try {
+    const tokenAccess = req.cookies.accessToken;
+    if (!tokenAccess) throw new Error("Invalid user");
+    const session = jwt.verify(tokenAccess, process.env.AUTH_SECRET_KEY!);
+    res.json(session);
+  } catch (err) {
+    res.status(401).json({ message: "Invalid token" });
+  }
+};
